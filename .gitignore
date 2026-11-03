@@ -1,0 +1,5 @@
+.DS_Store
+.idea/
+*.iml
+local.properties
+google-services.json
