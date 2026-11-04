@@ -9,8 +9,8 @@ The SDK registers the device with Sinch, shows Sinch notifications, and lets you
 
 ## Requirements
 
-- Android 5.0 (API 21) or later. Compile with API 34 or later.
-- Kotlin 1.8 or later if your app uses Kotlin.
+- Android 7.0 (API 24) or later. Compile with API 35 or later, with Android Gradle Plugin 8 and JDK 17.
+- Kotlin 2.3 or later if your app uses Kotlin.
 - A Firebase project with Cloud Messaging enabled, and your app registered in it.
 - A Sinch project configured for push, and these values from it:
   - **Project ID**, **Client ID** and **Config ID**
@@ -54,7 +54,7 @@ The repository is public, so no credentials are needed.
 
 ```groovy
 dependencies {
-    implementation 'com.sinch.push.sdk:sinch-push-sdk:1.0.0'
+    implementation 'com.sinch.push.sdk:sinch-push-sdk:2.0.0'
 }
 ```
 
@@ -263,6 +263,22 @@ SinchPushSDK.push.register(OrderUpdatesAddressee())
 
 Use the region your Sinch project was created in.
 
+## Push relay (preview, off by default)
+
+Besides FCM, the SDK can receive pushes over a WebSocket relay while your app is in the foreground. The relay is
+**not deployed to the production environments yet**, so it is off unless you turn it on:
+
+```kotlin
+val config = SinchConfig(clientID, projectID, configID, region, language, relay = SinchRelayConfig(enabled = true))
+```
+
+A message that arrives over both FCM and the relay is shown once. `SinchPushSDK.push.relayState` (a `StateFlow`) and
+`relayMessages` report the relay's state and messages; `setRelayEnabled(false)` turns it off at runtime.
+
+The AAR's manifest declares the relay's foreground service (`dataSync`) and the `FOREGROUND_SERVICE_DATA_SYNC`
+permission, also while the relay is off. If you publish on Google Play, declare that foreground service type in Play
+Console, or remove both from your merged manifest with `tools:node="remove"` while you don't use the relay.
+
 ## Debug logging
 
 ```kotlin
@@ -283,6 +299,18 @@ Logs use the Logcat tag `SINCH_PUSH`.
 - **Duplicate registrations.** Forward `onNewToken` from one place only.
 
 ## Changelog
+
+### 2.0.0
+
+- **Breaking:** requires Android 7.0 (API 24), compileSdk 35, AGP 8 / JDK 17 and Kotlin 2.3 or later.
+- **Breaking:** the manifest declares the push relay's foreground service and `FOREGROUND_SERVICE_DATA_SYNC`
+  (see [Push relay](#push-relay-preview-off-by-default)).
+- `SinchRegion.EU1` and `SinchRegion.US1` use the same chat and push hosts as the iOS SDK.
+- Push relay (preview, off by default): pushes over a WebSocket while the app is in the foreground, deduplicated
+  against FCM.
+- Data-only Sinch pushes with a `title`/`body` are shown, and delivery reports are sent to Sinch.
+- The device is subscribed again only when the token or the device info changed.
+- Uses firebase-messaging 26.0.0.
 
 ### 1.0.0
 
