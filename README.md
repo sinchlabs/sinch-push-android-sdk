@@ -54,7 +54,7 @@ The repository is public, so no credentials are needed.
 
 ```groovy
 dependencies {
-    implementation 'com.sinch.push.sdk:sinch-push-sdk:2.0.0'
+    implementation 'com.sinch.push.sdk:sinch-push-sdk:2.0.1'
 }
 ```
 
@@ -297,7 +297,34 @@ Logs use the Logcat tag `SINCH_PUSH`.
   the data payload) are handled. Others are left to your app.
 - **Duplicate registrations.** Forward `onNewToken` from one place only.
 
+## Size impact
+
+What adding `sinch-push-sdk` 2.0.1 costs your app, measured on a release build.
+
+| Your app | Download size added | APK size added |
+|---|---|---|
+| Without `firebase-messaging` yet | about 910 KiB | about 1,090 KiB |
+
+About 380 KiB of uncompressed code is Firebase Cloud Messaging (`firebase-messaging`, Play services, DataStore), which apps already using FCM ship anyway.
+
+Largest contributors to the added code (uncompressed dex size): gRPC (~250 KiB), OkHttp/Okio (~160 KiB), DataStore (~115 KiB), `firebase-messaging` (~100 KiB), kotlinx.coroutines (~95 KiB).
+
+**How it was measured.** The figures are estimates. They were measured on 2.0.0 on 2026-11-13, from a universal release APK built with Android Gradle Plugin 8.13.2, `minSdk` 24, R8 and resource shrinking, and read with `apkanalyzer` (estimated download size). Each figure is the difference to an empty app that has only appcompat, material and core-ktx. 2.0.1 has no code change, so the same numbers apply. Libraries your app already ships (Firebase, OkHttp, kotlinx.coroutines) are shared with the SDK, so the real increase can be lower. Google Play serves split APKs from an app bundle, so your users' real download is smaller than a universal APK.
+
+**Shrinking further**
+- Turn on R8 and resource shrinking in release builds (`minifyEnabled true`, `shrinkResources true`). The SDK ships its own R8 rules.
+- Publish an Android App Bundle, so Play delivers only the ABI and screen densities of each device.
+- Exclude protobuf's own `.proto` files, which the lite runtime does not read: `packaging { resources { excludes += 'google/protobuf/*.proto' } }`.
+- Align versions of shared libraries (`firebase-bom`, OkHttp, kotlinx.coroutines) so only one copy ends up in your app.
+
 ## Changelog
+
+### 2.0.1
+
+- Version aligned with `sinch-chat-sdk` 2.0.1.
+- Documentation: new [Size impact](#size-impact) section.
+- R8: the consumer keep rule now covers the field names of every protobuf-lite message (including `google.protobuf.Timestamp`), not only push's own packages. A precaution, same rule as `sinch-chat-sdk`; it applies app-wide (field names only).
+- No API change.
 
 ### 2.0.0
 
