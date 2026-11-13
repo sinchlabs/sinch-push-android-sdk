@@ -265,8 +265,7 @@ Use the region your Sinch project was created in.
 
 ## Push relay (preview, off by default)
 
-Besides FCM, the SDK can receive pushes over a WebSocket relay while your app is in the foreground. The relay is
-**not deployed to the production environments yet**, so it is off unless you turn it on:
+Besides FCM, the SDK can receive pushes over a WebSocket relay while your app is in the foreground. It is off unless you turn it on:
 
 ```kotlin
 val config = SinchConfig(clientID, projectID, configID, region, language, relay = SinchRelayConfig(enabled = true))
